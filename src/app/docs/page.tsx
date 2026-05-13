@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllPosts, isLoggedIn, type Post } from "@/lib/api";
+import { prefetchPosts, getCachedPosts } from "@/lib/postsStore";
+import { isLoggedIn, type Post } from "@/lib/api";
 
 const DEV_COLOR = {
   text: "text-tanstack-green",
@@ -35,9 +36,13 @@ function timeAgo(dateStr: string): string {
 
 export default function DocsPage() {
   const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [filtered, setFiltered] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use cached data immediately if available — zero loading flash
+  const cached =
+    getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
+  const [posts, setPosts] = useState<Post[]>(cached);
+  const [filtered, setFiltered] = useState<Post[]>(cached);
+  const [loading, setLoading] = useState(cached.length === 0);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -46,9 +51,10 @@ export default function DocsPage() {
     if (!isLoggedIn()) router.replace("/login");
   }, [router]);
 
-  // Fetch — only Development
+  // Fetch — reuses in-flight request or cache from Sidebar
   useEffect(() => {
-    getAllPosts()
+    if (cached.length > 0) return; // already have data
+    prefetchPosts()
       .then((list) => {
         const devOnly = list.filter((p) => p.category?.slug === "development");
         setPosts(devOnly);
@@ -56,6 +62,7 @@ export default function DocsPage() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Search filter

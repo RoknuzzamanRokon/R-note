@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAllPosts, type Post } from "@/lib/api";
+import { prefetchPosts } from "@/lib/postsStore";
+import { type Post } from "@/lib/api";
 import { useSidebar } from "./SidebarContext";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ const Sidebar = () => {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    getAllPosts()
+    prefetchPosts()
       .then((list) =>
         setPosts(list.filter((p) => p.category?.slug === "development")),
       )

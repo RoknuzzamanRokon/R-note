@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useRouter, useParams } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { getPostById, isLoggedIn, type Post } from "@/lib/api";
+
+// Lazy-load the heavy markdown bundle — only fetched when content is ready
+const MarkdownRenderer = lazy(() => import("./MarkdownRenderer"));
 
 type FullPost = Post & { content: string };
 
@@ -35,14 +36,14 @@ export default function PostPage() {
     }
     if (!id) return;
     getPostById(id)
-      .then(setPost)
+      .then((p) => setPost(p as FullPost))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [id, router]);
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Back button */}
+      {/* Back */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-xs text-on-surface-variant hover:text-white transition-colors mb-lg text-body-md"
@@ -53,18 +54,18 @@ export default function PostPage() {
         Back to Documents
       </button>
 
-      {/* Loading */}
+      {/* Loading skeleton */}
       {loading && (
         <div className="animate-pulse space-y-md">
           <div className="h-4 bg-surface-variant rounded w-1/4" />
           <div className="h-8 bg-surface-variant rounded w-3/4" />
           <div className="h-3 bg-surface-variant rounded w-1/3" />
           <div className="mt-xl space-y-sm">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(10)].map((_, i) => (
               <div
                 key={i}
                 className="h-3 bg-surface-variant rounded"
-                style={{ width: `${70 + (i % 4) * 8}%` }}
+                style={{ width: `${65 + (i % 5) * 7}%` }}
               />
             ))}
           </div>
@@ -84,20 +85,18 @@ export default function PostPage() {
         <>
           {/* Header */}
           <div className="mb-xl pb-xl border-b border-outline-variant">
-            {/* Category badge */}
             {post.category && (
               <span className="inline-flex items-center gap-xs text-[10px] font-bold text-tanstack-green border border-tanstack-green/30 bg-tanstack-green/5 px-2 py-0.5 rounded mb-md">
                 <span className="w-1.5 h-1.5 rounded-full bg-tanstack-green" />
                 {post.category.name.toUpperCase()}
               </span>
             )}
-
-            {/* Title */}
-            <h1 className="text-headline-lg font-bold text-white mb-md leading-tight">
+            <h1
+              className="text-headline-lg font-bold mb-md leading-tight"
+              style={{ color: "var(--fg)" }}
+            >
               {post.title}
             </h1>
-
-            {/* Meta row */}
             <div className="flex flex-wrap items-center gap-md text-label-md text-on-surface-variant">
               {post.author && (
                 <span className="flex items-center gap-xs">
@@ -141,11 +140,23 @@ export default function PostPage() {
             </div>
           </div>
 
-          {/* Markdown content */}
+          {/* Markdown — lazy loaded */}
           <div className="prose-dark">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {post.content}
-            </ReactMarkdown>
+            <Suspense
+              fallback={
+                <div className="space-y-sm animate-pulse">
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-3 bg-surface-variant rounded"
+                      style={{ width: `${70 + (i % 4) * 8}%` }}
+                    />
+                  ))}
+                </div>
+              }
+            >
+              <MarkdownRenderer content={post.content} />
+            </Suspense>
           </div>
         </>
       )}

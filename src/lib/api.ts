@@ -17,7 +17,6 @@ export const getAccessToken = (): string | null => {
 
 export const setAccessToken = (token: string) => {
   if (typeof window === "undefined") return;
-  // 30-day expiry
   const date = new Date();
   date.setTime(date.getTime() + 30 * 24 * 60 * 60 * 1000);
   document.cookie = `access_token=${token}; expires=${date.toUTCString()}; path=/`;
@@ -39,17 +38,31 @@ const fetchApi = async (endpoint: string, options?: RequestInit) => {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options?.headers as Record<string, string>),
   };
-
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
+  const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `Request failed: ${response.status}`);
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || `Request failed: ${response.status}`);
   }
   return response.json();
+};
+
+// ── In-memory cache ───────────────────────────────────────────────────────────
+// Keyed by endpoint. Stores { data, ts }. TTL = 5 minutes.
+
+const CACHE_TTL = 5 * 60 * 1000;
+const cache = new Map<string, { data: unknown; ts: number }>();
+
+const cachedFetch = async <T>(key: string, fetcher: () => Promise<T>): Promise<T> => {
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.ts < CACHE_TTL) return hit.data as T;
+  const data = await fetcher();
+  cache.set(key, { data, ts: Date.now() });
+  return data;
+};
+
+export const bustCache = (key?: string) => {
+  if (key) cache.delete(key);
+  else cache.clear();
 };
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -60,25 +73,18 @@ export const login = async (username: string, password: string): Promise<string>
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
   });
-
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || "Invalid username or password");
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Invalid username or password");
   }
-
   const data = await response.json();
   const token: string = data.access_token;
   setAccessToken(token);
+  bustCache(); // clear stale data on login
   return token;
 };
 
-// ── User ─────────────────────────────────────────────────────────────────────
-
-export const getUserProfile = async () => {
-  return fetchApi("/user/check-me", { method: "GET" });
-};
-
-// ── Blog ─────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface Post {
   id: string;
@@ -95,19 +101,24 @@ export interface Post {
   created_at: string;
   updated_at: string;
   published_at?: string;
+  content?: string;
 }
 
-export const getAllPosts = async (): Promise<Post[]> => {
-  const res = await fetchApi("/blog/posts", { method: "GET" });
-  if (Array.isArray(res?.data?.posts)) return res.data.posts;
-  if (Array.isArray(res?.data)) return res.data;
-  if (Array.isArray(res)) return res;
-  return [];
-};
+// ── Blog ─────────────────────────────────────────────────────────────────────
 
-export const getPostById = async (id: string): Promise<Post & { content: string }> => {
-  const res = await fetchApi(`/blog/posts/${id}`, { method: "GET" });
-  // response shape: { success: true, data: { ...post } }
-  if (res?.data) return res.data;
-  return res;
-};
+export const getAllPosts = (): Promise<Post[]> =>
+  cachedFetch("posts", async () => {
+    const res = await fetchApi("/blog/posts", { method: "GET" });
+    if (Array.isArray(res?.data?.posts)) return res.data.posts;
+    if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res)) return res;
+    return [];
+  });
+
+// Single post — cached individually
+export const getPostById = (id: string): Promise<Post> =>
+  cachedFetch(`post:${id}`, async () => {
+    const res = await fetchApi(`/blog/posts/${id}`, { method: "GET" });
+    if (res?.data) return res.data;
+    return res;
+  });
