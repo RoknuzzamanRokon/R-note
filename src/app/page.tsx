@@ -1,65 +1,183 @@
-import Image from "next/image";
+/* app/page.tsx */
+
+import React from "react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen">
+      <h2 className="text-headline-lg font-headline-md text-white mb-lg">Operations & Management</h2>
+      <div className="mb-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+          {/* Placeholder for Operations Card */}
+          <div className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-md">
+              <div className="flex items-center gap-sm">
+                <span className="bg-tanstack-blue text-white text-[10px] font-black px-1.5 py-0.5 rounded leading-none">R-Note</span>
+                <h4 className="text-title-lg font-bold text-tanstack-blue">OPERATIONS</h4>
+              </div>
+              <span className="text-[10px] bg-tanstack-cyan text-black px-1.5 py-0.5 rounded font-black">ACTIVE</span>
+            </div>
+            <p className="text-body-md font-bold italic text-tanstack-blue mb-sm">Standard protocols for emergency response and daily inspections.</p>
+            <p className="text-body-md text-on-surface-variant mb-xl leading-relaxed">
+              Staff-focused repository of community guidelines, crisis management protocols, and institutional checklists.
+            </p>
+            <div className="mt-auto pt-md flex items-center justify-between text-label-md text-outline">
+              <span>12 Documents</span>
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+          </div>
+
+          {/* Placeholder for Tenants Card */}
+          <div className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-md">
+              <div className="flex items-center gap-sm">
+                <span className="bg-tanstack-green text-white text-[10px] font-black px-1.5 py-0.5 rounded leading-none">R-Note</span>
+                <h4 className="text-title-lg font-bold text-tanstack-green">TENANTS</h4>
+              </div>
+              <span className="text-[10px] bg-tanstack-yellow text-black px-1.5 py-0.5 rounded font-black">BETA</span>
+            </div>
+            <p className="text-body-md font-bold italic text-tanstack-green mb-sm">Customizable welcome packets and move-in guides.</p>
+            <p className="text-body-md text-on-surface-variant mb-xl leading-relaxed">
+              Essential resident resources including utility connection guides, insurance requirements, and amenity rules.
+            </p>
+            <div className="mt-auto pt-md flex items-center justify-between text-label-md text-outline">
+              <span>8 Documents</span>
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+          </div>
+
+          {/* Placeholder for Maintenance Card */}
+          <div className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-md">
+              <div className="flex items-center gap-sm">
+                <span className="bg-tanstack-yellow text-white text-[10px] font-black px-1.5 py-0.5 rounded leading-none">R-Note</span>
+                <h4 className="text-title-lg font-bold text-tanstack-yellow">MAINTENANCE</h4>
+              </div>
+              <span className="text-[10px] bg-tanstack-pink text-white px-1.5 py-0.5 rounded font-black">ALPHA</span>
+            </div>
+            <p className="text-body-md font-bold italic text-tanstack-yellow mb-sm">Troubleshooting manuals for common appliance issues.</p>
+            <p className="text-body-md text-on-surface-variant mb-xl leading-relaxed">
+              Detailed HVAC seasonal maintenance logs and common plumbing fix tutorials for on-site technicians.
+            </p>
+            <div className="mt-auto pt-md flex items-center justify-between text-label-md text-outline">
+              <span>24 Documents</span>
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      <div className="mt-xl">
+        <h3 className="text-headline-md text-white mb-lg">Strategy & Compliance</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+          {/* Placeholder for Legal Card */}
+          <div className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-md">
+              <div className="flex items-center gap-sm">
+                <span className="bg-tanstack-cyan text-white text-[10px] font-black px-1.5 py-0.5 rounded leading-none">R-Note</span>
+                <h4 className="text-title-lg font-bold text-tanstack-cyan">LEGAL</h4>
+              </div>
+              <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded font-black">CRITICAL</span>
+            </div>
+            <p className="text-body-md font-bold italic text-tanstack-cyan mb-sm">Fair Housing Act regulations and eviction notice templates.</p>
+            <p className="text-body-md text-on-surface-variant mb-xl leading-relaxed">
+              Localized leasing law summaries and regulatory compliance checklists for risk mitigation.
+            </p>
+            <div className="mt-auto pt-md flex items-center justify-between text-label-md text-outline">
+              <span>15 Documents</span>
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+          </div>
+
+          {/* Placeholder for Marketing Card */}
+          <div className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-md">
+              <div className="flex items-center gap-sm">
+                <span className="bg-tanstack-pink text-white text-[10px] font-black px-1.5 py-0.5 rounded leading-none">R-Note</span>
+                <h4 className="text-title-lg font-bold text-tanstack-pink">MARKETING</h4>
+              </div>
+            </div>
+            <p className="text-body-md font-bold italic text-tanstack-pink mb-sm">Property images and brand identity guidelines.</p>
+            <p className="text-body-md text-on-surface-variant mb-xl leading-relaxed">
+              High-res asset library, social media posting schedules, and tenant outreach templates.
+            </p>
+            <div className="mt-auto pt-md flex items-center justify-between text-label-md text-outline">
+              <span>42 Files</span>
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+          </div>
+
+          {/* Placeholder for Financial Card */}
+          <div className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden">
+            <div className="flex justify-between items-start mb-md">
+              <div className="flex items-center gap-sm">
+                <span className="bg-tanstack-blue text-white text-[10px] font-black px-1.5 py-0.5 rounded leading-none">R-Note</span>
+                <h4 className="text-title-lg font-bold text-tanstack-blue">FINANCE</h4>
+              </div>
+              <span className="text-[10px] bg-tanstack-cyan text-black px-1.5 py-0.5 rounded font-black">NEW</span>
+            </div>
+            <p className="text-body-md font-bold italic text-tanstack-blue mb-sm">Accounts receivable and security deposit returns.</p>
+            <p className="text-body-md text-on-surface-variant mb-xl leading-relaxed">
+              Streamlined tax filing checklists and internal accounting workflows for management.
+            </p>
+            <div className="mt-auto pt-md flex items-center justify-between text-label-md text-outline">
+              <span>10 Documents</span>
+              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
+
+      <section className="mt-xl">
+        <div className="flex items-center justify-between mb-lg">
+          <h3 className="text-title-lg font-headline-md text-white flex items-center gap-sm">
+            <span className="material-symbols-outlined text-outline">schedule</span>
+            Recently Modified
+          </h3>
+        </div>
+        <div className="bg-card-bg border border-card-border rounded-arch overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-[#111] border-b border-card-border">
+              <tr>
+                <th className="px-lg py-3 text-[10px] font-bold text-outline uppercase tracking-widest">Title</th>
+                <th className="px-lg py-3 text-[10px] font-bold text-outline uppercase tracking-widest">Type</th>
+                <th className="px-lg py-3 text-[10px] font-bold text-outline uppercase tracking-widest text-right">
+                  Modified</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-card-border">
+              <tr className="hover:bg-[#151515] transition-colors cursor-pointer group">
+                <td className="px-lg py-4">
+                  <div className="flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-tanstack-blue text-[18px]">description</span>
+                    <span className="text-body-md font-medium text-white group-hover:text-tanstack-blue">Q3
+                      Safety Inspection Protocols</span>
+                  </div>
+                </td>
+                <td className="px-lg py-4">
+                  <span
+                    className="text-[10px] font-bold text-tanstack-blue px-2 py-0.5 rounded border border-tanstack-blue/30 bg-tanstack-blue/5">Operations</span>
+                </td>
+                <td className="px-lg py-4 text-body-md text-on-surface-variant text-right">2h ago</td>
+              </tr>
+              <tr className="hover:bg-[#151515] transition-colors cursor-pointer group">
+                <td className="px-lg py-4">
+                  <div className="flex items-center gap-sm">
+                    <span className="material-symbols-outlined text-tanstack-cyan text-[18px]">policy</span>
+                    <span className="text-body-md font-medium text-white group-hover:text-tanstack-cyan">Fair
+                      Housing Training Guide 2024</span>
+                  </div>
+                </td>
+                <td className="px-lg py-4">
+                  <span
+                    className="text-[10px] font-bold text-tanstack-cyan px-2 py-0.5 rounded border border-tanstack-cyan/30 bg-tanstack-cyan/5">Legal</span>
+                </td>
+                <td className="px-lg py-4 text-body-md text-on-surface-variant text-right">Yesterday</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }

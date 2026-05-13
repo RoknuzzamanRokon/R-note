@@ -1,0 +1,70 @@
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        surface: "#0a0a0a",
+        background: "#000000",
+        "on-background": "#ffffff",
+        "surface-variant": "#111111",
+        "outline-variant": "#1f1f1f",
+        primary: "#3b82f6",
+        secondary: "#a1a1aa",
+        "on-surface-variant": "#a1a1aa",
+        "tanstack-blue": "#3b82f6",
+        "tanstack-green": "#10b981",
+        "tanstack-yellow": "#f59e0b",
+        "tanstack-cyan": "#06b6d4",
+        "tanstack-pink": "#ec4899",
+        "nav-bg": "#000000",
+        "card-bg": "#0f0f0f",
+        "card-border": "#1a1a1a",
+        "royal-blue": "#3b82f6",
+      },
+      borderRadius: {
+        DEFAULT: "0.25rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        full: "9999px",
+        arch: "6px",
+      },
+      spacing: {
+        xs: "4px",
+        "container-max": "1440px",
+        margin: "32px",
+        sm: "8px",
+        xl: "32px",
+        lg: "24px",
+        gutter: "24px",
+        unit: "4px",
+        md: "16px",
+      },
+      fontFamily: {
+        "body-md": ["Inter", "sans-serif"],
+        "headline-lg": ["Metropolis", "sans-serif"],
+        "title-lg": ["Inter", "sans-serif"],
+        "display-xl": ["Metropolis", "sans-serif"],
+        "body-lg": ["Inter", "sans-serif"],
+        "headline-md": ["Metropolis", "sans-serif"],
+        "label-md": ["Inter", "sans-serif"],
+      },
+      fontSize: {
+        "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
+        "title-lg": ["20px", { lineHeight: "28px", fontWeight: "600" }],
+        "display-xl": ["48px", { lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700" }],
+        "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+        "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }],
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
