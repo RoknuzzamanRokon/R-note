@@ -1,30 +1,32 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* ── Colors ── */
-  --color-surface: #0a0a0a;
-  --color-background: #000000;
-  --color-on-background: #ffffff;
-  --color-surface-variant: #111111;
-  --color-outline-variant: #1f1f1f;
+  /* Accent colors — same in both themes */
   --color-primary: #3b82f6;
-  --color-secondary: #a1a1aa;
-  --color-on-surface-variant: #a1a1aa;
+  --color-royal-blue: #3b82f6;
   --color-tanstack-blue: #3b82f6;
   --color-tanstack-green: #10b981;
   --color-tanstack-yellow: #f59e0b;
   --color-tanstack-cyan: #06b6d4;
   --color-tanstack-pink: #ec4899;
-  --color-nav-bg: #000000;
-  --color-card-bg: #0f0f0f;
-  --color-card-border: #1a1a1a;
-  --color-royal-blue: #3b82f6;
-  --color-outline: #3f3f46;
+
+  /* Theme-aware colors — resolved from CSS vars set on :root */
+  --color-background: var(--bg);
+  --color-on-background: var(--fg);
+  --color-surface: var(--surface);
+  --color-surface-variant: var(--surface-variant);
+  --color-nav-bg: var(--nav-bg);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-outline-variant: var(--outline-variant);
+  --color-outline: var(--outline);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-secondary: var(--secondary);
 
   /* ── Border Radius ── */
   --radius-arch: 6px;
 
-  /* ── Custom named spacing (additive — default numeric scale is preserved) ── */
+  /* ── Spacing ── */
   --spacing-xs: 4px;
   --spacing-unit: 4px;
   --spacing-sm: 8px;
@@ -54,12 +56,47 @@
   --font-size-label-md: 12px;
 }
 
-body {
-  background: #000000;
-  color: #ffffff;
+/* ── Dark theme (default) ── */
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --surface: #0a0a0a;
+  --surface-variant: #111111;
+  --nav-bg: #000000;
+  --card-bg: #0f0f0f;
+  --card-border: #1a1a1a;
+  --outline-variant: #1f1f1f;
+  --outline: #3f3f46;
+  --on-surface-variant: #a1a1aa;
+  --secondary: #a1a1aa;
+  --body-bg: linear-gradient(13deg, #0f172a, #1e293a, #111827, #000000);
 }
 
-/* Custom Scrollbar */
+/* ── Light theme ── */
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --fg: #0f172a;
+  --surface: #f1f5f9;
+  --surface-variant: #e2e8f0;
+  --nav-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --outline-variant: #cbd5e1;
+  --outline: #94a3b8;
+  --on-surface-variant: #475569;
+  --secondary: #64748b;
+  --body-bg: linear-gradient(13deg, #f0f4ff, #e8f0fe, #f1f5f9, #ffffff);
+}
+
+/* ── Body ── */
+body {
+  background: var(--body-bg);
+  background-attachment: fixed;
+  color: var(--fg);
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ── Scrollbar ── */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -69,16 +106,170 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--outline-variant);
   border-radius: 10px;
 }
 
-/* Card Hover Glow */
+/* ── Card glow ── */
 .card-glow:hover {
   border-color: #3b82f688;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.12);
 }
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Markdown prose ── */
+.prose-dark {
+  color: var(--fg);
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+.prose-dark h1 {
+  color: #3b82f6;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 2rem 0 1rem;
+  border-bottom: 1px solid var(--outline-variant);
+  padding-bottom: 0.5rem;
+}
+
+.prose-dark h2 {
+  color: #06b6d4;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 1.75rem 0 0.75rem;
+}
+
+.prose-dark h3 {
+  color: #10b981;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.prose-dark h4 {
+  color: #f59e0b;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.prose-dark p {
+  margin: 0.75rem 0;
+}
+
+.prose-dark a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.prose-dark a:hover {
+  color: #60a5fa;
+}
+
+.prose-dark strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.prose-dark em {
+  color: var(--on-surface-variant);
+  font-style: italic;
+}
+
+.prose-dark ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.prose-dark ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.prose-dark li {
+  margin: 0.3rem 0;
+}
+
+.prose-dark blockquote {
+  border-left: 3px solid #3b82f6;
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  background: rgba(59, 130, 246, 0.05);
+  color: var(--on-surface-variant);
+  border-radius: 0 4px 4px 0;
+}
+
+.prose-dark code {
+  background: var(--surface-variant);
+  color: #10b981;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "Fira Code", "Cascadia Code", monospace;
+  border: 1px solid var(--outline-variant);
+}
+
+.prose-dark pre {
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.prose-dark pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--fg);
+  font-size: 13px;
+}
+
+.prose-dark table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 14px;
+}
+
+.prose-dark th {
+  background: var(--surface-variant);
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--outline-variant);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prose-dark td {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--outline-variant);
+  color: var(--fg);
+}
+
+.prose-dark tr:hover td {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.prose-dark hr {
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  margin: 2rem 0;
+}
+
+.prose-dark img {
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--outline-variant);
+  margin: 1rem 0;
 }

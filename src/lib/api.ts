@@ -99,9 +99,15 @@ export interface Post {
 
 export const getAllPosts = async (): Promise<Post[]> => {
   const res = await fetchApi("/blog/posts", { method: "GET" });
-  // response shape: { success: true, data: { posts: [...] } }
   if (Array.isArray(res?.data?.posts)) return res.data.posts;
   if (Array.isArray(res?.data)) return res.data;
   if (Array.isArray(res)) return res;
   return [];
+};
+
+export const getPostById = async (id: string): Promise<Post & { content: string }> => {
+  const res = await fetchApi(`/blog/posts/${id}`, { method: "GET" });
+  // response shape: { success: true, data: { ...post } }
+  if (res?.data) return res.data;
+  return res;
 };

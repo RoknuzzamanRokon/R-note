@@ -10,6 +10,18 @@ const DEV_COLOR = {
   bg: "bg-tanstack-green/5",
 };
 
+// Rotating title colours for each card
+const TITLE_COLORS = [
+  "#3b82f6", // blue
+  "#10b981", // green
+  "#06b6d4", // cyan
+  "#f59e0b", // yellow
+  "#ec4899", // pink
+  "#a78bfa", // violet
+  "#f97316", // orange
+  "#34d399", // emerald
+];
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -130,72 +142,79 @@ export default function DocsPage() {
       {/* Grid */}
       {!loading && !error && filtered.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
-          {filtered.map((post) => (
-            <div
-              key={post.id}
-              className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden cursor-pointer"
-            >
-              {/* Top row */}
-              <div className="flex justify-between items-start mb-md">
-                <div className="flex items-center gap-sm">
+          {filtered.map((post, idx) => {
+            const titleColor = TITLE_COLORS[idx % TITLE_COLORS.length];
+            return (
+              <a
+                key={post.id}
+                href={`/docs/${post.id}`}
+                className="bg-card-bg border border-card-border p-lg rounded-arch card-glow transition-all group relative overflow-hidden cursor-pointer block no-underline"
+              >
+                {/* Top row */}
+                <div className="flex justify-between items-start mb-md">
+                  <div className="flex items-center gap-sm">
+                    <span
+                      className={`material-symbols-outlined ${DEV_COLOR.text} text-[20px]`}
+                    >
+                      description
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold ${DEV_COLOR.text} ${DEV_COLOR.border} ${DEV_COLOR.bg} border px-1.5 py-0.5 rounded`}
+                    >
+                      DEVELOPMENT
+                    </span>
+                  </div>
                   <span
-                    className={`material-symbols-outlined ${DEV_COLOR.text} text-[20px]`}
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      post.status === "published"
+                        ? "bg-tanstack-green/10 text-tanstack-green border border-tanstack-green/30"
+                        : "bg-surface-variant text-on-surface-variant border border-outline-variant"
+                    }`}
                   >
-                    description
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold ${DEV_COLOR.text} ${DEV_COLOR.border} ${DEV_COLOR.bg} border px-1.5 py-0.5 rounded`}
-                  >
-                    DEVELOPMENT
+                    {post.status.toUpperCase()}
                   </span>
                 </div>
-                <span
-                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    post.status === "published"
-                      ? "bg-tanstack-green/10 text-tanstack-green border border-tanstack-green/30"
-                      : "bg-surface-variant text-on-surface-variant border border-outline-variant"
-                  }`}
+
+                {/* Title */}
+                <h4
+                  className="text-body-lg font-semibold mb-sm line-clamp-2 transition-colors"
+                  style={{ color: titleColor }}
                 >
-                  {post.status.toUpperCase()}
-                </span>
-              </div>
+                  {post.title}
+                </h4>
 
-              {/* Title */}
-              <h4 className="text-body-lg font-semibold text-white group-hover:text-tanstack-green mb-sm transition-colors line-clamp-2">
-                {post.title}
-              </h4>
+                {/* Excerpt */}
+                {post.excerpt && (
+                  <p className="text-body-md text-on-surface-variant mb-md leading-relaxed line-clamp-3">
+                    {post.excerpt.replace(/^#+\s*/gm, "").substring(0, 120)}…
+                  </p>
+                )}
 
-              {/* Excerpt */}
-              {post.excerpt && (
-                <p className="text-body-md text-on-surface-variant mb-md leading-relaxed line-clamp-3">
-                  {post.excerpt.replace(/^#+\s*/gm, "").substring(0, 120)}…
-                </p>
-              )}
-
-              {/* Footer */}
-              <div className="flex items-center justify-between text-label-md text-on-surface-variant mt-auto pt-md border-t border-outline-variant">
-                <div className="flex items-center gap-sm">
-                  {post.author && (
-                    <span className="flex items-center gap-xs">
-                      <span className="material-symbols-outlined text-[14px]">
-                        person
+                {/* Footer */}
+                <div className="flex items-center justify-between text-label-md text-on-surface-variant mt-auto pt-md border-t border-outline-variant">
+                  <div className="flex items-center gap-sm">
+                    {post.author && (
+                      <span className="flex items-center gap-xs">
+                        <span className="material-symbols-outlined text-[14px]">
+                          person
+                        </span>
+                        {post.author}
                       </span>
-                      {post.author}
-                    </span>
-                  )}
-                  {post.read_time && (
-                    <span className="flex items-center gap-xs">
-                      <span className="material-symbols-outlined text-[14px]">
-                        schedule
+                    )}
+                    {post.read_time && (
+                      <span className="flex items-center gap-xs">
+                        <span className="material-symbols-outlined text-[14px]">
+                          schedule
+                        </span>
+                        {post.read_time}m
                       </span>
-                      {post.read_time}m
-                    </span>
-                  )}
+                    )}
+                  </div>
+                  <span>{timeAgo(post.updated_at)}</span>
                 </div>
-                <span>{timeAgo(post.updated_at)}</span>
-              </div>
-            </div>
-          ))}
+              </a>
+            );
+          })}
         </div>
       )}
     </div>

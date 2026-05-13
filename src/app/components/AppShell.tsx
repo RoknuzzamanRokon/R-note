@@ -12,8 +12,8 @@ function ShellLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Sidebar />
       <TopAppBar />
+      <Sidebar />
       <main
         className="transition-all duration-300 pt-20 px-xl pb-xl"
         style={{ marginLeft: open ? "16rem" : "0" }}
