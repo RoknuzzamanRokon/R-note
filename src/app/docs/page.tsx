@@ -36,13 +36,21 @@ function timeAgo(dateStr: string): string {
 
 export default function DocsPage() {
   const router = useRouter();
-
-  // Use cached data immediately if available — zero loading flash
-  const cached =
-    getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
-  const [posts, setPosts] = useState<Post[]>(cached);
-  const [filtered, setFiltered] = useState<Post[]>(cached);
-  const [loading, setLoading] = useState(cached.length === 0);
+  const [posts, setPosts] = useState<Post[]>(() => {
+    const cached =
+      getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
+    return cached;
+  });
+  const [filtered, setFiltered] = useState<Post[]>(() => {
+    const cached =
+      getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
+    return cached;
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    const cached =
+      getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
+    return cached.length === 0;
+  });
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -51,9 +59,11 @@ export default function DocsPage() {
     if (!isLoggedIn()) router.replace("/login");
   }, [router]);
 
-  // Fetch — reuses in-flight request or cache from Sidebar
+  // Fetch — uses cache instantly if available, otherwise fetches
   useEffect(() => {
-    if (cached.length > 0) return; // already have data
+    // Already hydrated from cache in useState initializer
+    if (posts.length > 0) return;
+    // Not cached yet — fetch
     prefetchPosts()
       .then((list) => {
         const devOnly = list.filter((p) => p.category?.slug === "development");
@@ -84,17 +94,17 @@ export default function DocsPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-lg">
+      {/* <div className="flex items-center justify-between mb-lg">
         <div>
           <h2 className="text-headline-lg font-bold text-white">Development</h2>
           <p className="text-body-md text-on-surface-variant mt-xs">
             {loading ? "Loading…" : `${filtered.length} documents`}
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Search */}
-      <div className="mb-lg">
+      {/* <div className="mb-lg">
         <div className="relative max-w-sm">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
             search
@@ -107,7 +117,7 @@ export default function DocsPage() {
             className="w-full pl-9 pr-4 py-sm bg-surface-variant border border-outline-variant rounded text-body-md text-white focus:outline-none focus:border-royal-blue transition-colors placeholder:text-on-surface-variant/50"
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Loading skeletons */}
       {loading && (
@@ -165,11 +175,6 @@ export default function DocsPage() {
                     >
                       description
                     </span>
-                    <span
-                      className={`text-[10px] font-bold ${DEV_COLOR.text} ${DEV_COLOR.border} ${DEV_COLOR.bg} border px-1.5 py-0.5 rounded`}
-                    >
-                      DEVELOPMENT
-                    </span>
                   </div>
                   <span
                     className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
@@ -184,8 +189,12 @@ export default function DocsPage() {
 
                 {/* Title */}
                 <h4
-                  className="text-body-lg font-semibold mb-sm line-clamp-2 transition-colors"
-                  style={{ color: titleColor }}
+                  className="text-body-lg font-semibold mb-sm line-clamp-2 transition-colors doc-title"
+                  style={
+                    {
+                      ["--title-color" as string]: titleColor,
+                    } as React.CSSProperties
+                  }
                 >
                   {post.title}
                 </h4>

@@ -138,18 +138,6 @@ const Sidebar = () => {
                     {post.title}
                   </p>
                   <div className="flex items-center gap-xs mt-[3px]">
-                    {post.category && (
-                      <>
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full ${dotColor(post.category.slug)} shrink-0`}
-                        />
-                        <span
-                          className={`text-[10px] ${textColor(post.category.slug)} font-medium truncate`}
-                        >
-                          {post.category.name}
-                        </span>
-                      </>
-                    )}
                     <span className="text-[10px] text-on-surface-variant/50 shrink-0 ml-auto">
                       {timeAgo(post.updated_at)}
                     </span>

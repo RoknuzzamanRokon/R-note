@@ -85,10 +85,95 @@
   --outline: #94a3b8;
   --on-surface-variant: #475569;
   --secondary: #64748b;
-  --body-bg: linear-gradient(13deg, #dfe0e6, #e8f0fe, #f1f5f9, #c2bfbf);
+  --body-bg: #ffffff;
 }
 
-/* ── Body ── */
+/* Light mode: single accent, all text dark */
+[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] [class*="text-tanstack-"] {
+  color: #00f0e4 !important;
+}
+
+[data-theme="light"] [class*="text-royal-blue"] {
+  color: #2563eb !important;
+}
+
+[data-theme="light"] .text-on-surface-variant {
+  color: #475569 !important;
+}
+
+[data-theme="light"] [class*="border-tanstack-"] {
+  border-color: rgba(37, 99, 235, 0.25) !important;
+}
+
+[data-theme="light"] [class*="bg-tanstack-"][class*="/5"] {
+  background-color: rgba(37, 99, 235, 0.06) !important;
+}
+
+[data-theme="light"] [class*="bg-tanstack-"][class*="/10"] {
+  background-color: rgba(37, 99, 235, 0.08) !important;
+}
+
+[data-theme="light"] [class*="bg-tanstack-"]:not([class*="/"]) {
+  background-color: #2563eb !important;
+}
+
+[data-theme="light"] .prose-dark h1 {
+  color: #000000;
+}
+
+[data-theme="light"] .prose-dark h2 {
+  color: #000000;
+}
+
+[data-theme="light"] .prose-dark h3 {
+  color: #050505;
+}
+
+[data-theme="light"] .prose-dark h4 {
+  color: #2563eb;
+}
+
+[data-theme="light"] .prose-dark strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .prose-dark code {
+  color: #1d4ed8;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+[data-theme="light"] .prose-dark pre {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .prose-dark pre code {
+  color: #0f172a;
+  background: transparent;
+}
+
+[data-theme="light"] .prose-dark td {
+  color: #0f172a;
+}
+
+[data-theme="light"] .prose-dark blockquote {
+  color: #475569;
+}
+
+/* Card doc titles use CSS variable so light theme can override */
+.doc-title {
+  color: var(--title-color, #ffffff);
+}
+
+[data-theme="light"] .doc-title {
+  color: #1e40af !important;
+}
+
 body {
   background: var(--body-bg);
   background-attachment: fixed;
@@ -128,7 +213,7 @@ body {
 }
 
 .prose-dark h1 {
-  color: #3b82f6;
+  color: #f63b3b;
   font-size: 28px;
   font-weight: 700;
   margin: 2rem 0 1rem;
