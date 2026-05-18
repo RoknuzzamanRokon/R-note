@@ -90,7 +90,7 @@
 
 /* Light mode: single accent, all text dark */
 [data-theme="light"] .text-white {
-  color: #ffe600 !important;
+  color: #ff0000 !important;
 }
 
 [data-theme="light"] [class*="text-tanstack-"] {
@@ -236,7 +236,7 @@ body {
 }
 
 .prose-dark h4 {
-  color: #f59e0b;
+  color: #64646441;
   font-size: 15px;
   font-weight: 600;
   margin: 1.25rem 0 0.5rem;
