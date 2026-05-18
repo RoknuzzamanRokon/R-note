@@ -36,21 +36,15 @@ function timeAgo(dateStr: string): string {
 
 export default function DocsPage() {
   const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>(() => {
-    const cached =
-      getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
-    return cached;
-  });
-  const [filtered, setFiltered] = useState<Post[]>(() => {
-    const cached =
-      getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
-    return cached;
-  });
-  const [loading, setLoading] = useState<boolean>(() => {
-    const cached =
-      getCachedPosts()?.filter((p) => p.category?.slug === "development") ?? [];
-    return cached.length === 0;
-  });
+  const [posts, setPosts] = useState<Post[]>(
+    () => getCachedPosts("Development") ?? [],
+  );
+  const [filtered, setFiltered] = useState<Post[]>(
+    () => getCachedPosts("Development") ?? [],
+  );
+  const [loading, setLoading] = useState<boolean>(
+    () => (getCachedPosts("Development") ?? []).length === 0,
+  );
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -64,11 +58,10 @@ export default function DocsPage() {
     // Already hydrated from cache in useState initializer
     if (posts.length > 0) return;
     // Not cached yet — fetch
-    prefetchPosts()
+    prefetchPosts("Development")
       .then((list) => {
-        const devOnly = list.filter((p) => p.category?.slug === "development");
-        setPosts(devOnly);
-        setFiltered(devOnly);
+        setPosts(list);
+        setFiltered(list);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));

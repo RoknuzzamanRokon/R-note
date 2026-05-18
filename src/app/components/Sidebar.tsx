@@ -1,37 +1,50 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { prefetchPosts } from "@/lib/postsStore";
-import { type Post } from "@/lib/api";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  prefetchCategories,
+  prefetchPosts,
+  getCachedCategories,
+  getCachedPosts,
+} from "@/lib/postsStore";
+import { type Post, type CategorySummary } from "@/lib/api";
 import { useSidebar } from "./SidebarContext";
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Category styling ──────────────────────────────────────────────────────────
 
-const ICON_COLORS: Record<string, string> = {
-  tutorial: "text-tanstack-cyan",
-  development: "text-tanstack-green",
-  performance: "text-tanstack-yellow",
-  security: "text-tanstack-pink",
-};
-const DOT_COLORS: Record<string, string> = {
-  tutorial: "bg-tanstack-cyan",
-  development: "bg-tanstack-green",
-  performance: "bg-tanstack-yellow",
-  security: "bg-tanstack-pink",
-};
-const TEXT_COLORS: Record<string, string> = {
-  tutorial: "text-tanstack-cyan",
-  development: "text-tanstack-green",
-  performance: "text-tanstack-yellow",
-  security: "text-tanstack-pink",
+const CATEGORY_STYLE: Record<
+  string,
+  { icon: string; color: string; bg: string }
+> = {
+  development: {
+    icon: "code",
+    color: "text-tanstack-green",
+    bg: "bg-tanstack-green/10",
+  },
+  tutorial: {
+    icon: "school",
+    color: "text-tanstack-cyan",
+    bg: "bg-tanstack-cyan/10",
+  },
+  performance: {
+    icon: "speed",
+    color: "text-tanstack-yellow",
+    bg: "bg-tanstack-yellow/10",
+  },
+  security: {
+    icon: "shield_lock",
+    color: "text-tanstack-pink",
+    bg: "bg-tanstack-pink/10",
+  },
 };
 
-const iconColor = (slug?: string) =>
-  ICON_COLORS[slug ?? ""] ?? "text-tanstack-blue";
-const dotColor = (slug?: string) =>
-  DOT_COLORS[slug ?? ""] ?? "bg-tanstack-blue";
-const textColor = (slug?: string) =>
-  TEXT_COLORS[slug ?? ""] ?? "text-tanstack-blue";
+const getStyle = (slug: string) =>
+  CATEGORY_STYLE[slug.toLowerCase()] ?? {
+    icon: "folder",
+    color: "text-tanstack-blue",
+    bg: "bg-tanstack-blue/10",
+  };
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -48,49 +61,87 @@ function timeAgo(dateStr: string): string {
 
 const Sidebar = () => {
   const { open } = useSidebar();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
+  // categories list
+  const [categories, setCategories] = useState<CategorySummary[]>(
+    () => getCachedCategories() ?? [],
+  );
+  const [catLoading, setCatLoading] = useState(
+    () => (getCachedCategories() ?? []).length === 0,
+  );
+  const [catError, setCatError] = useState(false);
+
+  // which category is expanded
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  // posts per expanded category
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsError, setPostsError] = useState(false);
+
+  // load categories once
   useEffect(() => {
-    prefetchPosts()
-      .then((list) =>
-        setPosts(list.filter((p) => p.category?.slug === "development")),
-      )
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+    if (categories.length > 0) return;
+    prefetchCategories()
+      .then(setCategories)
+      .catch(() => setCatError(true))
+      .finally(() => setCatLoading(false));
   }, []);
+
+  // load posts when a category is expanded
+  useEffect(() => {
+    if (!expanded) {
+      setPosts([]);
+      return;
+    }
+    const cached = getCachedPosts(expanded);
+    if (cached) {
+      setPosts(cached);
+      return;
+    }
+    setPostsLoading(true);
+    setPostsError(false);
+    prefetchPosts(expanded)
+      .then(setPosts)
+      .catch(() => setPostsError(true))
+      .finally(() => setPostsLoading(false));
+  }, [expanded]);
+
+  const handleCategoryClick = (name: string) => {
+    setExpanded((prev) => (prev === name ? null : name));
+  };
+
+  const activePostId = pathname?.startsWith("/docs/")
+    ? pathname.split("/docs/")[1]
+    : null;
 
   return (
     <aside
       className="fixed left-0 bottom-0 flex flex-col bg-nav-bg border-r border-outline-variant z-40 transition-all duration-300 overflow-hidden"
       style={{
-        top: "3.5rem", // below navbar (56px)
+        top: "3.5rem",
         width: open ? "16rem" : "0",
         borderRightWidth: open ? "1px" : "0",
       }}
     >
-      <div className="w-64 flex flex-col h-full py-lg px-md">
-        {/* Section label */}
-        <div className="flex items-center justify-between px-sm mb-sm shrink-0">
+      <div className="w-64 flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between px-lg py-md shrink-0 border-b border-outline-variant">
           <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest whitespace-nowrap">
             Documentation
           </span>
-          {!loading && !error && (
-            <span className="text-[10px] text-on-surface-variant bg-surface-variant px-1.5 py-0.5 rounded">
-              {posts.length}
-            </span>
-          )}
         </div>
 
-        {/* Document list */}
-        <div className="grow overflow-y-auto custom-scrollbar space-y-[2px]">
-          {/* Skeletons */}
-          {loading && (
-            <div className="flex flex-col gap-sm px-md py-sm">
-              {[75, 55, 90, 65, 80, 50].map((w, i) => (
-                <div key={i} className="flex items-center gap-sm">
-                  <div className="w-4 h-4 bg-surface-variant rounded animate-pulse shrink-0" />
+        {/* Scrollable body */}
+        <div className="grow overflow-y-auto custom-scrollbar py-sm">
+          {/* Category skeleton */}
+          {catLoading && (
+            <div className="flex flex-col gap-xs px-md py-sm">
+              {[60, 80, 55, 70].map((w, i) => (
+                <div key={i} className="flex items-center gap-sm py-sm">
+                  <div className="w-5 h-5 bg-surface-variant rounded animate-pulse shrink-0" />
                   <div
                     className="h-3 bg-surface-variant rounded animate-pulse"
                     style={{ width: `${w}%` }}
@@ -100,51 +151,115 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* Error */}
-          {error && (
-            <div className="px-md py-sm flex items-center gap-sm">
-              <span className="material-symbols-outlined text-[16px] text-tanstack-pink">
+          {/* Category error */}
+          {catError && (
+            <div className="px-md py-sm flex items-center gap-sm text-tanstack-pink">
+              <span className="material-symbols-outlined text-[16px]">
                 error
               </span>
-              <span className="text-body-md text-on-surface-variant whitespace-nowrap">
+              <span className="text-body-md whitespace-nowrap">
                 Failed to load
               </span>
             </div>
           )}
 
-          {/* Empty */}
-          {!loading && !error && posts.length === 0 && (
-            <p className="px-md py-sm text-body-md text-on-surface-variant whitespace-nowrap">
-              No documents found.
-            </p>
-          )}
+          {/* Category list */}
+          {!catLoading &&
+            !catError &&
+            categories.map((cat) => {
+              const style = getStyle(cat.slug);
+              const isOpen = expanded === cat.name;
 
-          {/* Posts */}
-          {!loading &&
-            !error &&
-            posts.map((post) => (
-              <a
-                key={post.id}
-                href={`/docs#${post.slug}`}
-                className="flex items-start gap-sm px-md py-sm rounded hover:bg-surface-variant transition-all cursor-pointer group"
-              >
-                <span
-                  className={`material-symbols-outlined ${iconColor(post.category?.slug)} text-[16px] mt-[2px] shrink-0`}
-                >
-                  description
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-body-md text-on-surface-variant group-hover:text-white leading-snug line-clamp-2">
-                    {post.title}
-                  </p>
-                  <div className="flex items-center gap-xs mt-[3px]">
-                    <span className="text-[10px] text-on-surface-variant/50 shrink-0 ml-auto">
-                      {timeAgo(post.updated_at)}
+              return (
+                <div key={cat.id}>
+                  {/* Category row */}
+                  <button
+                    onClick={() => handleCategoryClick(cat.name)}
+                    className="w-full flex items-center gap-sm px-md py-[9px] hover:bg-surface-variant transition-colors group"
+                  >
+                    <span
+                      className={`material-symbols-outlined ${style.color} text-[17px] shrink-0`}
+                    >
+                      {style.icon}
                     </span>
-                  </div>
+                    <span className="flex-1 text-left text-body-md text-on-surface-variant group-hover:text-white whitespace-nowrap truncate">
+                      {cat.name}
+                    </span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded ${style.bg} ${style.color} shrink-0`}
+                    >
+                      {cat.post_count}
+                    </span>
+                    <span
+                      className={`material-symbols-outlined text-[14px] text-on-surface-variant/50 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    >
+                      expand_more
+                    </span>
+                  </button>
+
+                  {/* Posts under this category */}
+                  {isOpen && (
+                    <div className="border-l border-outline-variant ml-[28px] mb-xs">
+                      {/* Posts loading */}
+                      {postsLoading && (
+                        <div className="flex flex-col gap-xs px-sm py-xs">
+                          {[70, 90, 60, 80].map((w, i) => (
+                            <div
+                              key={i}
+                              className="h-3 bg-surface-variant rounded animate-pulse my-[3px]"
+                              style={{ width: `${w}%` }}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Posts error */}
+                      {postsError && (
+                        <p className="px-sm py-xs text-body-md text-tanstack-pink">
+                          Failed to load
+                        </p>
+                      )}
+
+                      {/* Posts empty */}
+                      {!postsLoading && !postsError && posts.length === 0 && (
+                        <p className="px-sm py-xs text-body-md text-on-surface-variant/50">
+                          No posts
+                        </p>
+                      )}
+
+                      {/* Post links */}
+                      {!postsLoading &&
+                        !postsError &&
+                        posts.map((post) => {
+                          const isActive = activePostId === post.id;
+                          return (
+                            <button
+                              key={post.id}
+                              onClick={() => router.push(`/docs/${post.id}`)}
+                              className={`w-full text-left flex items-start gap-xs px-sm py-[7px] transition-colors group ${
+                                isActive
+                                  ? "bg-surface-variant"
+                                  : "hover:bg-surface-variant/60"
+                              }`}
+                            >
+                              <span
+                                className={`material-symbols-outlined text-[13px] mt-[2px] shrink-0 ${isActive ? style.color : "text-on-surface-variant/40"}`}
+                              >
+                                article
+                              </span>
+                              <span
+                                className={`text-body-md leading-snug line-clamp-2 ${isActive ? "text-white" : "text-on-surface-variant group-hover:text-white/80"}`}
+                              >
+                                {post.title}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
-              </a>
-            ))}
+              );
+            })}
         </div>
       </div>
     </aside>

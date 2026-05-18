@@ -102,17 +102,79 @@ export interface Post {
   updated_at: string;
   published_at?: string;
   content?: string;
+  meta_title?: string;
+  meta_description?: string;
+}
+
+export interface CategorySummary {
+  id: string;
+  name: string;
+  slug: string;
+  post_count: number;
+}
+
+export interface PostsResponse {
+  posts: Post[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+  category_summary: CategorySummary[];
+}
+
+export interface GetPostsParams {
+  category?: string; // category name e.g. "Development"
+  page?: number;
+  limit?: number;
 }
 
 // ── Blog ─────────────────────────────────────────────────────────────────────
 
+export const getPosts = (params: GetPostsParams = {}): Promise<PostsResponse> => {
+  const { category, page = 1, limit = 10 } = params;
+  const query = new URLSearchParams();
+  if (category) query.set("category", category);
+  query.set("page", String(page));
+  query.set("limit", String(limit));
+  const endpoint = `/blog/posts?${query.toString()}`;
+  const cacheKey = `posts:${endpoint}`;
+
+  return cachedFetch(cacheKey, async () => {
+    const res = await fetchApi(endpoint, { method: "GET" });
+    const data = res?.data ?? res;
+    return {
+      posts: Array.isArray(data?.posts) ? data.posts : [],
+      total: data?.total ?? 0,
+      page: data?.page ?? page,
+      limit: data?.limit ?? limit,
+      total_pages: data?.total_pages ?? 1,
+      category_summary: Array.isArray(data?.category_summary)
+        ? data.category_summary
+        : [],
+    } satisfies PostsResponse;
+  });
+};
+
+/** Fetch ALL pages for a given category (used by sidebar / store). */
+export const getAllPostsByCategory = async (category: string): Promise<Post[]> => {
+  const cacheKey = `posts:all:${category}`;
+  return cachedFetch(cacheKey, async () => {
+    const first = await getPosts({ category, page: 1, limit: 100 });
+    if (first.total_pages <= 1) return first.posts;
+    const rest = await Promise.all(
+      Array.from({ length: first.total_pages - 1 }, (_, i) =>
+        getPosts({ category, page: i + 2, limit: 100 }).then((r) => r.posts),
+      ),
+    );
+    return [...first.posts, ...rest.flat()];
+  });
+};
+
+/** Kept for backwards-compat — fetches all posts without category filter. */
 export const getAllPosts = (): Promise<Post[]> =>
-  cachedFetch("posts", async () => {
-    const res = await fetchApi("/blog/posts", { method: "GET" });
-    if (Array.isArray(res?.data?.posts)) return res.data.posts;
-    if (Array.isArray(res?.data)) return res.data;
-    if (Array.isArray(res)) return res;
-    return [];
+  cachedFetch("posts:all", async () => {
+    const res = await getPosts({ limit: 100 });
+    return res.posts;
   });
 
 // Single post — cached individually
