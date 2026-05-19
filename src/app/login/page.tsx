@@ -30,7 +30,6 @@ export default function LoginPage() {
   return (
     <div
       className="flex min-h-screen items-center justify-center"
-      style={{ background: "#000000" }}
     >
       <div
         className="w-full mx-4 rounded-lg border p-8"

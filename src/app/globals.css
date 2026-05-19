@@ -67,9 +67,9 @@
   --card-border: #1a1a1a;
   --outline-variant: #1f1f1f;
   --outline: #3f3f46;
-  --on-surface-variant: #a1a1aa;
+  --on-surface-variant: #ecfcff;
   --secondary: #a1a1aa;
-  --body-bg: linear-gradient(13deg, #3b3c3f, #060708, #000103, #7c7e88);
+  --body-bg: radial-gradient(circle at center, #302626 0%, #101113 50%, #000000 100%);
 }
 
 /* ── Light theme ── */
