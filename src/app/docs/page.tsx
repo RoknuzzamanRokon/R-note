@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { prefetchPosts, getCachedPosts } from "@/lib/postsStore";
-import { isLoggedIn, type Post } from "@/lib/api";
+import {
+  prefetchCategories,
+  getCachedCategories,
+  prefetchPosts,
+} from "@/lib/postsStore";
+import { isLoggedIn, type Post, type CategorySummary } from "@/lib/api";
 
 const DEV_COLOR = {
   text: "text-tanstack-green",
@@ -36,81 +40,109 @@ function timeAgo(dateStr: string): string {
 
 export default function DocsPage() {
   const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>(
-    () => getCachedPosts("Development") ?? [],
-  );
-  const [filtered, setFiltered] = useState<Post[]>(
-    () => getCachedPosts("Development") ?? [],
-  );
-  const [loading, setLoading] = useState<boolean>(
-    () => (getCachedPosts("Development") ?? []).length === 0,
-  );
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [categories, setCategories] = useState<CategorySummary[]>(
+    () => getCachedCategories() ?? [],
+  );
 
   // Auth guard
   useEffect(() => {
     if (!isLoggedIn()) router.replace("/login");
   }, [router]);
 
-  // Fetch — uses cache instantly if available, otherwise fetches
+  // Fetch categories then all posts for each category
   useEffect(() => {
-    // Already hydrated from cache in useState initializer
-    if (posts.length > 0) return;
-    // Not cached yet — fetch
-    prefetchPosts("Development")
-      .then((list) => {
-        setPosts(list);
-        setFiltered(list);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const cats = await prefetchCategories();
+        if (cancelled) return;
+        setCategories(cats);
+
+        // Fetch posts for every category in parallel
+        const allPostArrays = await Promise.all(
+          cats.map((c) => prefetchPosts(c.name)),
+        );
+        if (cancelled) return;
+
+        // Merge and deduplicate by id
+        const seen = new Set<string>();
+        const merged: Post[] = [];
+        for (const arr of allPostArrays) {
+          for (const p of arr) {
+            if (!seen.has(p.id)) {
+              seen.add(p.id);
+              merged.push(p);
+            }
+          }
+        }
+
+        setPosts(merged);
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Search filter
-  useEffect(() => {
-    if (!search.trim()) {
-      setFiltered(posts);
-      return;
-    }
-    const q = search.toLowerCase();
-    setFiltered(
-      posts.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.excerpt?.toLowerCase().includes(q),
-      ),
-    );
-  }, [search, posts]);
+  // Derive filtered list directly — no effect needed
+  const filtered = posts
+    .filter(
+      (p) => activeCategory === "All" || p.category?.name === activeCategory,
+    )
+    .filter((p) => {
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return (
+        p.title.toLowerCase().includes(q) ||
+        p.excerpt?.toLowerCase().includes(q)
+      );
+    });
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      {/* <div className="flex items-center justify-between mb-lg">
-        <div>
-          <h2 className="text-headline-lg font-bold text-white">Development</h2>
-          <p className="text-body-md text-on-surface-variant mt-xs">
-            {loading ? "Loading…" : `${filtered.length} documents`}
-          </p>
+      {/* Category tabs */}
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-sm mb-lg">
+          <button
+            onClick={() => setActiveCategory("All")}
+            className={`px-3 py-1 rounded text-body-md font-medium border transition-colors ${
+              activeCategory === "All"
+                ? "bg-tanstack-green/10 text-tanstack-green border-tanstack-green/40"
+                : "bg-surface-variant text-on-surface-variant border-outline-variant hover:border-tanstack-green/30"
+            }`}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.name)}
+              className={`px-3 py-1 rounded text-body-md font-medium border transition-colors ${
+                activeCategory === cat.name
+                  ? "bg-tanstack-green/10 text-tanstack-green border-tanstack-green/40"
+                  : "bg-surface-variant text-on-surface-variant border-outline-variant hover:border-tanstack-green/30"
+              }`}
+            >
+              {cat.name}
+              <span className="ml-1 text-label-md opacity-60">
+                ({cat.post_count})
+              </span>
+            </button>
+          ))}
         </div>
-      </div> */}
-
-      {/* Search */}
-      {/* <div className="mb-lg">
-        <div className="relative max-w-sm">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
-            search
-          </span>
-          <input
-            type="text"
-            placeholder="Search documents…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-sm bg-surface-variant border border-outline-variant rounded text-body-md text-white focus:outline-none focus:border-royal-blue transition-colors placeholder:text-on-surface-variant/50"
-          />
-        </div>
-      </div> */}
+      )}
 
       {/* Loading skeletons */}
       {loading && (
