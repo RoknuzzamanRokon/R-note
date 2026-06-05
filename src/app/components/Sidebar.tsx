@@ -10,6 +10,7 @@ import {
 } from "@/lib/postsStore";
 import { type Post, type CategorySummary } from "@/lib/api";
 import { useSidebar } from "./SidebarContext";
+import BlogEditor from "./BlogEditor";
 
 // ── Category styling ──────────────────────────────────────────────────────────
 
@@ -76,6 +77,9 @@ const Sidebar = () => {
   // which category is expanded
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  // blog editor
+  const [editorOpen, setEditorOpen] = useState(false);
+
   // posts per expanded category
   const [posts, setPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
@@ -127,13 +131,6 @@ const Sidebar = () => {
       }}
     >
       <div className="w-64 flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between px-lg py-md shrink-0 border-b border-outline-variant">
-          <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest whitespace-nowrap">
-            Documentation
-          </span>
-        </div>
-
         {/* Scrollable body */}
         <div className="grow overflow-y-auto custom-scrollbar py-sm">
           {/* Category skeleton */}
@@ -261,6 +258,7 @@ const Sidebar = () => {
               );
             })}
         </div>
+        <BlogEditor open={editorOpen} onClose={() => setEditorOpen(false)} />
       </div>
     </aside>
   );

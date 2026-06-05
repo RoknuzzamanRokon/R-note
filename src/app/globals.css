@@ -90,15 +90,15 @@
 
 /* Light mode: single accent, all text dark */
 [data-theme="light"] .text-white {
-  color: #ff0000 !important;
+  color: #0f172a !important;
 }
 
 [data-theme="light"] [class*="text-tanstack-"] {
-  color: #01003d !important;
+  color: #000000 !important;
 }
 
 [data-theme="light"] [class*="text-royal-blue"] {
-  color: #2563eb !important;
+  color: #ff0000 !important;
 }
 
 [data-theme="light"] .text-on-surface-variant {
@@ -106,15 +106,15 @@
 }
 
 [data-theme="light"] [class*="border-tanstack-"] {
-  border-color: rgb(235, 37, 37) !important;
+  border-color: #6937379d !important;
 }
 
 [data-theme="light"] [class*="bg-tanstack-"][class*="/5"] {
-  background-color: rgba(37, 100, 235, 0.952) !important;
+  background-color: rgba(59, 130, 246, 0.08) !important;
 }
 
 [data-theme="light"] [class*="bg-tanstack-"][class*="/10"] {
-  background-color: rgba(0, 197, 197, 0.37) !important;
+  background-color: rgba(59, 130, 246, 0.12) !important;
 }
 
 [data-theme="light"] [class*="bg-tanstack-"]:not([class*="/"]) {

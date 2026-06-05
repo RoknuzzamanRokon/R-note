@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { isLoggedIn, removeAccessToken } from "@/lib/api";
 import { useSidebar } from "./SidebarContext";
 
@@ -9,6 +9,7 @@ const TopAppBar = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [dark, setDark] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const { toggle } = useSidebar();
 
   useEffect(() => {
@@ -53,7 +54,7 @@ const TopAppBar = () => {
           <span className="material-symbols-outlined text-[22px]">menu</span>
         </button>
 
-        <div className="flex items-center gap-sm">
+        <div className="flex items-center gap-sm cursor-pointer" onClick={() => router.push("/docs")}>
           <div
             className="w-8 h-8 rounded flex items-center justify-center text-white shrink-0"
             style={{ background: "#3b82f6" }}
@@ -76,52 +77,27 @@ const TopAppBar = () => {
 
       {/* Right: theme toggle + logout */}
       <div className="flex items-center gap-xs">
-        {/* Theme toggle switch */}
+        {/* New post button — hidden on /docs/new */}
+        {pathname !== "/docs/new" && (
+          <button
+            onClick={() => router.push("/docs/new")}
+            title="New document"
+            className="text-on-surface-variant hover:text-white p-1.5 rounded hover:bg-surface-variant transition-colors"
+          >
+            <span className="material-symbols-outlined text-[22px]">add</span>
+          </button>
+        )}
+        {/* Theme toggle */}
         <button
           onClick={toggleTheme}
           title={dark ? "Switch to light mode" : "Switch to dark mode"}
-          className="relative w-14 h-7 rounded-full border transition-all duration-300 flex items-center px-1 shrink-0"
-          style={{
-            background: dark ? "#1e293b" : "#e2e8f0",
-            borderColor: dark ? "#334155" : "#cbd5e1",
-          }}
+          className="text-on-surface-variant hover:text-white p-1.5 rounded hover:bg-surface-variant transition-colors"
         >
-          {/* Sun icon (left) */}
           <span
-            className="material-symbols-outlined absolute left-1.5 text-[14px] transition-opacity duration-300"
-            style={{
-              color: "#f59e0b",
-              opacity: dark ? 0.3 : 1,
-              fontVariationSettings: '"FILL" 1',
-            }}
+            className="material-symbols-outlined text-[22px]"
+            style={{ fontVariationSettings: '"FILL" 1' }}
           >
-            light_mode
-          </span>
-          {/* Moon icon (right) */}
-          <span
-            className="material-symbols-outlined absolute right-1.5 text-[14px] transition-opacity duration-300"
-            style={{
-              color: "#818cf8",
-              opacity: dark ? 1 : 0.3,
-              fontVariationSettings: '"FILL" 1',
-            }}
-          >
-            dark_mode
-          </span>
-          {/* Sliding thumb */}
-          <span
-            className="w-5 h-5 rounded-full shadow-md transition-all duration-300 flex items-center justify-center shrink-0"
-            style={{
-              background: dark ? "#6366f1" : "#f59e0b",
-              transform: dark ? "translateX(28px)" : "translateX(0px)",
-            }}
-          >
-            <span
-              className="material-symbols-outlined text-white"
-              style={{ fontSize: "12px", fontVariationSettings: '"FILL" 1' }}
-            >
-              {dark ? "dark_mode" : "light_mode"}
-            </span>
+            {dark ? "dark_mode" : "light_mode"}
           </span>
         </button>
 

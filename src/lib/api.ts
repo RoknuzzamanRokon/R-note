@@ -1,6 +1,6 @@
 /* src/lib/api.ts */
 
-const BASE_URL = "https://www.testcontent.innovatedemo.com/api/v1.0";
+const BASE_URL = "https://testcontent.innovatedemo.com/api/v1.0";
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
@@ -24,7 +24,8 @@ export const setAccessToken = (token: string) => {
 
 export const removeAccessToken = () => {
   if (typeof window === "undefined") return;
-  document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+  document.cookie =
+    "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
 };
 
 export const isLoggedIn = (): boolean => !!getAccessToken();
@@ -38,10 +39,20 @@ const fetchApi = async (endpoint: string, options?: RequestInit) => {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options?.headers as Record<string, string>),
   };
-  const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+  const response = await fetch(`${BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.detail || `Request failed: ${response.status}`);
+    const text = await response.text().catch(() => "");
+    let detail = `Request failed: ${response.status}`;
+    try {
+      const err = JSON.parse(text);
+      detail = err.detail || err.message || detail;
+    } catch {
+      if (text) detail = text;
+    }
+    throw new Error(detail);
   }
   return response.json();
 };
@@ -52,7 +63,10 @@ const fetchApi = async (endpoint: string, options?: RequestInit) => {
 const CACHE_TTL = 5 * 60 * 1000;
 const cache = new Map<string, { data: unknown; ts: number }>();
 
-const cachedFetch = async <T>(key: string, fetcher: () => Promise<T>): Promise<T> => {
+const cachedFetch = async <T>(
+  key: string,
+  fetcher: () => Promise<T>,
+): Promise<T> => {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.ts < CACHE_TTL) return hit.data as T;
   const data = await fetcher();
@@ -67,15 +81,25 @@ export const bustCache = (key?: string) => {
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 
-export const login = async (username: string, password: string): Promise<string> => {
+export const login = async (
+  username: string,
+  password: string,
+): Promise<string> => {
   const response = await fetch(`${BASE_URL}/auth/token`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
   });
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.detail || "Invalid username or password");
+    const text = await response.text().catch(() => "");
+    let detail = "Invalid username or password";
+    try {
+      const err = JSON.parse(text);
+      detail = err.detail || err.message || detail;
+    } catch {
+      if (text) detail = text;
+    }
+    throw new Error(detail);
   }
   const data = await response.json();
   const token: string = data.access_token;
@@ -122,6 +146,24 @@ export interface PostsResponse {
   category_summary: CategorySummary[];
 }
 
+export interface CreatePostPayload {
+  title: string;
+  author: string;
+  content?: string;
+  excerpt?: string;
+  category_id?: string;
+  featured_image?: string;
+  status?: string;
+  tags?: string[];
+  meta_title?: string;
+  meta_description?: string;
+}
+
+export interface CreateCategoryPayload {
+  name: string;
+  description?: string;
+}
+
 export interface GetPostsParams {
   category?: string; // category name e.g. "Development"
   page?: number;
@@ -130,7 +172,9 @@ export interface GetPostsParams {
 
 // ── Blog ─────────────────────────────────────────────────────────────────────
 
-export const getPosts = (params: GetPostsParams = {}): Promise<PostsResponse> => {
+export const getPosts = (
+  params: GetPostsParams = {},
+): Promise<PostsResponse> => {
   const { category, page = 1, limit = 10 } = params;
   const query = new URLSearchParams();
   if (category) query.set("category", category);
@@ -156,7 +200,9 @@ export const getPosts = (params: GetPostsParams = {}): Promise<PostsResponse> =>
 };
 
 /** Fetch ALL pages for a given category (used by sidebar / store). */
-export const getAllPostsByCategory = async (category: string): Promise<Post[]> => {
+export const getAllPostsByCategory = async (
+  category: string,
+): Promise<Post[]> => {
   const cacheKey = `posts:all:${category}`;
   return cachedFetch(cacheKey, async () => {
     const first = await getPosts({ category, page: 1, limit: 100 });
@@ -184,3 +230,39 @@ export const getPostById = (id: string): Promise<Post> =>
     if (res?.data) return res.data;
     return res;
   });
+
+// ── Blog: Create ──────────────────────────────────────────────────────────────
+
+export const createPost = async (data: CreatePostPayload): Promise<Post> => {
+  const res = await fetchApi("/blog/posts", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+  return res?.data ?? res;
+};
+
+export const createCategory = (
+  data: CreateCategoryPayload,
+): Promise<{ id: string; name: string; slug: string }> =>
+  fetchApi("/blog/categories", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+const IMAGE_UPLOAD_URL = "http://localhost:8000/upload-blog-image";
+
+export const uploadBlogImage = async (file: File): Promise<{ url: string }> => {
+  const token = getAccessToken();
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await fetch(IMAGE_UPLOAD_URL, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || `Upload failed: ${response.status}`);
+  }
+  return response.json();
+};
