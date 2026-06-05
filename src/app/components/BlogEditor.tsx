@@ -82,7 +82,7 @@ export default function BlogEditor({ open, onClose }: Props) {
         title: title.trim(),
         content,
         excerpt: excerpt.trim() || undefined,
-        author: author.trim() || undefined,
+        author: author.trim() || "Anonymous",
         category_id: categoryId || undefined,
         featured_image: featuredImage || undefined,
         status,
