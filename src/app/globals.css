@@ -301,10 +301,12 @@ body {
 }
 
 .prose-dark pre {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--outline-variant);
   border-radius: 6px;
   padding: 1rem 1.25rem;
+  padding-top: 2.5rem;
   overflow-x: auto;
   margin: 1rem 0;
 }
