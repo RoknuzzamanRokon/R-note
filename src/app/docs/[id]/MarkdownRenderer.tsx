@@ -38,7 +38,10 @@ function CopyButton({ getText }: { getText: () => string }) {
 function Pre({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) {
   const preRef = useRef<HTMLPreElement>(null);
 
-  const getTextContent = () => preRef.current?.textContent ?? "";
+  const getTextContent = () => {
+    const codeEl = preRef.current?.querySelector("code");
+    return codeEl?.textContent ?? preRef.current?.textContent ?? "";
+  };
 
   return (
     <pre {...props} ref={preRef} className="relative group">
@@ -50,10 +53,7 @@ function Pre({ children, ...props }: React.HTMLAttributes<HTMLPreElement>) {
 
 export default function MarkdownRenderer({ content }: { content: string }) {
   return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      components={{ pre: Pre }}
-    >
+    <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ pre: Pre }}>
       {content}
     </ReactMarkdown>
   );
