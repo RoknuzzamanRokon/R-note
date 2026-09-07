@@ -47,9 +47,9 @@ export default function PostPage() {
 
   return (
     <>
-      {/* Back — fixed below navbar, respects sidebar width */}
+      {/* Back / Edit — fixed below navbar, respects sidebar width */}
       <div
-        className="fixed top-14 z-30 transition-all duration-300 px-xl py-sm bg-nav-bg border-b border-outline-variant"
+        className="fixed top-14 z-30 transition-all duration-300 px-xl py-sm bg-nav-bg border-b border-outline-variant flex items-center justify-between"
         style={{ left: open ? "16rem" : "0", right: 0 }}
       >
         <button
@@ -61,6 +61,16 @@ export default function PostPage() {
           </span>
           Back to Documents
         </button>
+
+        {post && (
+          <button
+            onClick={() => router.push(`/docs/${id}/edit`)}
+            className="flex items-center gap-xs px-md py-1.5 rounded text-label-md font-bold border border-outline-variant text-on-surface-variant hover:text-white hover:bg-surface-variant transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            Edit
+          </button>
+        )}
       </div>
 
       <div className="max-w-4xl mx-auto mt-12">

@@ -241,6 +241,21 @@ export const createPost = async (data: CreatePostPayload): Promise<Post> => {
   return res?.data ?? res;
 };
 
+// ── Blog: Update ──────────────────────────────────────────────────────────────
+
+export type UpdatePostPayload = Partial<CreatePostPayload>;
+
+export const updatePost = async (
+  id: string,
+  data: UpdatePostPayload,
+): Promise<Post> => {
+  const res = await fetchApi(`/blog/posts/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res?.data ?? res;
+};
+
 export const createCategory = (
   data: CreateCategoryPayload,
 ): Promise<{ id: string; name: string; slug: string }> =>
