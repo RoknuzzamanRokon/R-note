@@ -7,6 +7,7 @@ import { login } from "@/lib/api";
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -99,22 +100,40 @@ export default function LoginPage() {
             >
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full rounded px-3 py-2 text-sm text-white focus:outline-none transition-colors disabled:opacity-50"
-              style={{
-                background: "#111111",
-                border: "1px solid #1f1f1f",
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#3b82f6")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#1f1f1f")}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                className="w-full rounded px-3 py-2 pr-10 text-sm text-white focus:outline-none transition-colors disabled:opacity-50"
+                style={{
+                  background: "#111111",
+                  border: "1px solid #1f1f1f",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#3b82f6")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#1f1f1f")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                disabled={loading}
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center disabled:opacity-50"
+                style={{ color: "#a1a1aa", background: "transparent", border: "none" }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: "18px" }}
+                >
+                  {showPassword ? "visibility_off" : "visibility"}
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Error */}
