@@ -67,3 +67,9 @@ export const prefetchCategories = (): Promise<CategorySummary[]> => {
 
 export const getCachedCategories = (): CategorySummary[] | null =>
     categorySummaryResolved;
+
+/** Forget the category list so the next prefetchCategories() asks the API. */
+export const invalidateCategories = () => {
+    categorySummaryPromise = null;
+    categorySummaryResolved = null;
+};

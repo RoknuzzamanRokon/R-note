@@ -1,6 +1,11 @@
 /* src/lib/api.ts */
 
-const BASE_URL = "https://testcontent.innovatedemo.com/api/v1.0";
+// Backend address. Set NEXT_PUBLIC_API_URL (in .env.local or at build time)
+// when the backend is not on this machine, e.g. https://api.example.com
+const API_ORIGIN = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8035"
+).replace(/\/+$/, "");
+const BASE_URL = `${API_ORIGIN}/api/v1.0`;
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
@@ -30,6 +35,15 @@ export const removeAccessToken = () => {
 
 export const isLoggedIn = (): boolean => !!getAccessToken();
 
+/** Token missing/expired/invalid → clear it and go to the login page. */
+const handleUnauthorized = (response: Response) => {
+  if (response.status !== 401 || typeof window === "undefined") return;
+  removeAccessToken();
+  if (!window.location.pathname.startsWith("/login")) {
+    window.location.href = "/login";
+  }
+};
+
 // ── Generic authenticated fetch ──────────────────────────────────────────────
 
 const fetchApi = async (endpoint: string, options?: RequestInit) => {
@@ -43,6 +57,7 @@ const fetchApi = async (endpoint: string, options?: RequestInit) => {
     ...options,
     headers,
   });
+  handleUnauthorized(response);
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     let detail = `Request failed: ${response.status}`;
@@ -116,10 +131,12 @@ export interface Post {
   slug: string;
   excerpt?: string;
   author?: string;
-  category: { id: string; name: string; slug: string } | null;
+  category: { id: string; name: string; slug: string; is_public?: boolean } | null;
   tags?: string[];
   featured_image?: string;
   status: string;
+  /** Readable without login once published */
+  is_public?: boolean;
   view_count?: number;
   read_time?: number;
   created_at: string;
@@ -135,6 +152,13 @@ export interface CategorySummary {
   name: string;
   slug: string;
   post_count: number;
+  /** Every published post in it is readable without login */
+  is_public?: boolean;
+}
+
+export interface Category extends CategorySummary {
+  description?: string | null;
+  created_at: string;
 }
 
 export interface PostsResponse {
@@ -154,6 +178,7 @@ export interface CreatePostPayload {
   category_id?: string;
   featured_image?: string;
   status?: string;
+  is_public?: boolean;
   tags?: string[];
   meta_title?: string;
   meta_description?: string;
@@ -162,7 +187,10 @@ export interface CreatePostPayload {
 export interface CreateCategoryPayload {
   name: string;
   description?: string;
+  is_public?: boolean;
 }
+
+export type UpdateCategoryPayload = Partial<CreateCategoryPayload>;
 
 export interface GetPostsParams {
   category?: string; // category name e.g. "Development"
@@ -256,15 +284,36 @@ export const updatePost = async (
   return res?.data ?? res;
 };
 
-export const createCategory = (
+// ── Categories ────────────────────────────────────────────────────────────────
+
+export const getCategories = async (): Promise<Category[]> => {
+  const res = await fetchApi("/blog/categories", { method: "GET" });
+  const data = res?.data ?? res;
+  return Array.isArray(data) ? data : [];
+};
+
+export const createCategory = async (
   data: CreateCategoryPayload,
-): Promise<{ id: string; name: string; slug: string }> =>
-  fetchApi("/blog/categories", {
+): Promise<Category> => {
+  const res = await fetchApi("/blog/categories", {
     method: "POST",
     body: JSON.stringify(data),
   });
+  return res?.data ?? res;
+};
 
-const IMAGE_UPLOAD_URL = "http://localhost:8000/upload-blog-image";
+export const updateCategory = async (
+  id: string,
+  data: UpdateCategoryPayload,
+): Promise<Category> => {
+  const res = await fetchApi(`/blog/categories/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+  return res?.data ?? res;
+};
+
+const IMAGE_UPLOAD_URL = `${API_ORIGIN}/upload-blog-image`;
 
 export const uploadBlogImage = async (file: File): Promise<{ url: string }> => {
   const token = getAccessToken();
@@ -275,6 +324,7 @@ export const uploadBlogImage = async (file: File): Promise<{ url: string }> => {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
+  handleUnauthorized(response);
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.detail || `Upload failed: ${response.status}`);

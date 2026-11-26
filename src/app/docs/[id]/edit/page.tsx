@@ -78,6 +78,7 @@ export default function EditPostPage() {
         author: post.author ?? "",
         categoryId: post.category?.id ?? "",
         status: post.status === "draft" ? "draft" : "published",
+        isPublic: post.is_public ?? false,
         featuredImage: post.featured_image ?? "",
         metaTitle: post.meta_title ?? "",
         metaDescription: post.meta_description ?? "",

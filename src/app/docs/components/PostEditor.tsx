@@ -33,6 +33,7 @@ export type PostEditorInitialValues = {
   author: string;
   categoryId: string;
   status: "draft" | "published";
+  isPublic: boolean;
   featuredImage: string;
   metaTitle: string;
   metaDescription: string;
@@ -66,6 +67,7 @@ export default function PostEditor({
   const [author, setAuthor] = useState(initialValues?.author ?? "");
   const [categoryId, setCategoryId] = useState(initialValues?.categoryId ?? "");
   const [status, setStatus] = useState<"draft" | "published">(initialValues?.status ?? "published");
+  const [isPublic, setIsPublic] = useState(initialValues?.isPublic ?? false);
   const [featuredImage, setFeaturedImage] = useState(initialValues?.featuredImage ?? "");
   const [metaTitle, setMetaTitle] = useState(initialValues?.metaTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(initialValues?.metaDescription ?? "");
@@ -124,6 +126,7 @@ export default function PostEditor({
         category_id: categoryId || undefined,
         featured_image: featuredImage.trim() || undefined,
         status,
+        is_public: isPublic,
         meta_title: metaTitle.trim() || undefined,
         meta_description: metaDescription.trim() || undefined,
       };
@@ -151,6 +154,26 @@ export default function PostEditor({
         </button>
 
         <div className="flex items-center gap-sm">
+          {/* Private / Public toggle */}
+          <button
+            onClick={() => setIsPublic((p) => !p)}
+            title={
+              isPublic
+                ? "Anyone can read this post once it is published"
+                : "Only you can read this post (unless its category is public)"
+            }
+            className={`flex items-center gap-xs px-md py-1 rounded text-label-md font-bold border transition-colors ${
+              isPublic
+                ? "bg-tanstack-blue/10 text-tanstack-blue border-tanstack-blue/40"
+                : "bg-surface-variant text-on-surface-variant border-outline-variant"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {isPublic ? "public" : "lock"}
+            </span>
+            {isPublic ? "Public" : "Private"}
+          </button>
+
           {/* Draft / Published toggle */}
           <button
             onClick={() => setStatus(s => s === "draft" ? "published" : "draft")}

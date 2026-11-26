@@ -7,10 +7,18 @@ import {
   prefetchPosts,
   getCachedCategories,
   getCachedPosts,
+  invalidateCategories,
+  invalidatePosts,
 } from "@/lib/postsStore";
-import { type Post, type CategorySummary } from "@/lib/api";
+import {
+  bustCache,
+  type Category,
+  type Post,
+  type CategorySummary,
+} from "@/lib/api";
 import { useSidebar } from "./SidebarContext";
 import BlogEditor from "./BlogEditor";
+import CategoryModal from "./CategoryModal";
 
 // ── Category styling ──────────────────────────────────────────────────────────
 
@@ -80,6 +88,12 @@ const Sidebar = () => {
   // blog editor
   const [editorOpen, setEditorOpen] = useState(false);
 
+  // category create / edit dialog (category null → create)
+  const [catModal, setCatModal] = useState<{
+    open: boolean;
+    category: CategorySummary | null;
+  }>({ open: false, category: null });
+
   // posts per expanded category
   const [posts, setPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
@@ -117,6 +131,22 @@ const Sidebar = () => {
     setExpanded((prev) => (prev === name ? null : name));
   };
 
+  const handleCategorySaved = (saved: Category) => {
+    const oldName = catModal.category?.name;
+    setCatModal({ open: false, category: null });
+    // Drop cached lists so every page sees the new / renamed category
+    bustCache();
+    invalidateCategories();
+    invalidatePosts();
+    if (oldName && oldName !== saved.name) {
+      setExpanded((prev) => (prev === oldName ? saved.name : prev));
+    }
+    setCatError(false);
+    prefetchCategories()
+      .then(setCategories)
+      .catch(() => setCatError(true));
+  };
+
   const activePostId = pathname?.startsWith("/docs/")
     ? pathname.split("/docs/")[1]
     : null;
@@ -133,6 +163,20 @@ const Sidebar = () => {
       <div className="w-64 flex flex-col h-full">
         {/* Scrollable body */}
         <div className="grow overflow-y-auto custom-scrollbar py-sm">
+          {/* Header + new category */}
+          <div className="flex items-center justify-between pl-md pr-sm pb-xs">
+            <span className="text-label-md text-on-surface-variant/70 uppercase tracking-wide whitespace-nowrap">
+              Categories
+            </span>
+            <button
+              onClick={() => setCatModal({ open: true, category: null })}
+              title="New category"
+              className="flex items-center p-0.5 rounded text-on-surface-variant hover:text-white hover:bg-surface-variant transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+            </button>
+          </div>
+
           {/* Category skeleton */}
           {catLoading && (
             <div className="flex flex-col gap-xs px-md py-sm">
@@ -170,29 +214,46 @@ const Sidebar = () => {
               return (
                 <div key={cat.id}>
                   {/* Category row */}
-                  <button
-                    onClick={() => handleCategoryClick(cat.name)}
-                    className="w-full flex items-center gap-sm px-md py-[9px] hover:bg-surface-variant transition-colors group"
-                  >
-                    <span
-                      className={`material-symbols-outlined ${style.color} text-[17px] shrink-0`}
+                  <div className="flex items-center hover:bg-surface-variant transition-colors group">
+                    <button
+                      onClick={() => handleCategoryClick(cat.name)}
+                      className="flex-1 min-w-0 flex items-center gap-sm pl-md pr-xs py-[9px]"
                     >
-                      {style.icon}
-                    </span>
-                    <span className="flex-1 text-left text-body-md text-on-surface-variant group-hover:text-white whitespace-nowrap truncate">
-                      {cat.name}
-                    </span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded ${style.bg} ${style.color} shrink-0`}
+                      <span
+                        className={`material-symbols-outlined ${style.color} text-[17px] shrink-0`}
+                      >
+                        {style.icon}
+                      </span>
+                      <span className="flex-1 min-w-0 text-left text-body-md text-on-surface-variant group-hover:text-white whitespace-nowrap truncate">
+                        {cat.name}
+                      </span>
+                      {cat.is_public && (
+                        <span
+                          title="Public: anyone can read its published posts"
+                          className="material-symbols-outlined text-[14px] text-tanstack-green shrink-0"
+                        >
+                          public
+                        </span>
+                      )}
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded ${style.bg} ${style.color} shrink-0`}
+                      >
+                        {cat.post_count}
+                      </span>
+                      <span
+                        className={`material-symbols-outlined text-[14px] text-on-surface-variant/50 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                      >
+                        expand_more
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setCatModal({ open: true, category: cat })}
+                      title={`Edit ${cat.name}`}
+                      className="mr-sm p-0.5 rounded flex items-center text-on-surface-variant hover:text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
                     >
-                      {cat.post_count}
-                    </span>
-                    <span
-                      className={`material-symbols-outlined text-[14px] text-on-surface-variant/50 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                    >
-                      expand_more
-                    </span>
-                  </button>
+                      <span className="material-symbols-outlined text-[15px]">edit</span>
+                    </button>
+                  </div>
 
                   {/* Posts under this category */}
                   {isOpen && (
@@ -259,6 +320,14 @@ const Sidebar = () => {
             })}
         </div>
         <BlogEditor open={editorOpen} onClose={() => setEditorOpen(false)} />
+        {catModal.open && (
+          <CategoryModal
+            key={catModal.category?.id ?? "new"}
+            category={catModal.category}
+            onClose={() => setCatModal({ open: false, category: null })}
+            onSaved={handleCategorySaved}
+          />
+        )}
       </div>
     </aside>
   );
